@@ -160,7 +160,7 @@ var One = function(id, content){
 	//为什么在里面的所有that都是第一个。用过闭包，也不能解决。
 	//发现个问题，现在只能给实例化的实例用。而不能自动工厂函数实例出来自动加载。
 	//
-	// data.on('add',function(){
+	// data.Events.on('add',function(){
 	// 	console.log(that.getId); // 一直是0
 	// });
 
