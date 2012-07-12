@@ -1,0 +1,56 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<script type="text/javascript" src="events.js"></script>
+	<script type="text/javascript">
+	// ====== test ==========
+	//一个工厂函数
+	function a(){
+		var that = {};
+		var b = 'old';
+		that.a = 'a';
+		that.alert = function(){
+			alert(b+',alert');
+		}
+		that.msg = function(){
+			alert(b+',msg');
+		}
+		return that;
+	}
+
+
+	var A = a();
+	//加载Event
+	Events(A);
+	//绑定事件
+	A.Events.on('alert',function(){alert('alert1')});
+	A.Events.bind('alert',function(){alert('alert2')});
+	A.alert();
+	//如果绑定的事件已经绑定过
+	A.Events.bind('alert',function(){alert('alert2')});
+	A.alert();	
+	A.Events.bind('alert',function(){alert('alert3')});
+	//解除绑定
+	A.Events.off('alert',function(){alert('alert2')});
+	A.alert();
+	A.Events.on('msg',function(){alert('msg')});
+	A.msg();
+	//手动触发绑定
+	A.Events.fire('msg');
+	A.Events.off();
+	A.msg();
+	//卸载
+	A.Events.destroy();
+
+	var AA = a();
+	//自定义命名空间
+	Events(AA,'E');
+	AA.E.on('alert',function(){alert('AA')});
+	AA.alert();
+	</script>
+</head>
+<body>
+</body>
+</html>
