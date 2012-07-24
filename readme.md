@@ -7,10 +7,12 @@
 
 	A.Events.on('alert',function(){alert('alert1')});
 	A.Events.bind('alert',function(){alert('alert2')});
-实例化 
+实例 
 
-	var A = a();
-	
+	var A = {
+	 alert = function(){},
+	 msg = function(){}
+	}	
 @加载Events
 
 	Events(A);
