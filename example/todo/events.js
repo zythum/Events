@@ -5,28 +5,47 @@
 // @手动触发 fire/trigger
 // @卸载绑定 destroy
 function Events(o,handle){
-	var E,m,event,split;
+	var E,split;
 	handle = handle || 'Events';
 	spliter = /\s+/;
+
+	if(o[handle]) {return false};
+
 	//重构---虽然破坏了原有的结构。但是一般来说不会重写这部分的把
-	for(m in o){
+	// for(m in o){
+	// 	if(o[m].prototype){			
+	// 		(function(m){	
+	// 			var i,_cache,len,old,rs;
+	// 			old = o[m];
+	// 			o[m] = function(){				
+	// 				rs = o[m].old.apply(this,arguments);
+	// 				for(i=0,_cache=o[m]._cache,len=_cache.length; i<len; i++){
+	// 					_cache[i] && _cache[i](rs);
+	// 				}
+	// 				return rs;
+	// 			};
+	// 			o[m]._cache = [];
+	// 			o[m].old = old;
+	// 		})(m);
+	// 	}
+	// };
+	// 需要是再重构。这样顺便解决顺序问题
+	var init = function(m){
 		if(o[m].prototype){			
-			(function(m){	
-				var i,list,len,old,rs;
-				old = o[m];
-				o[m] = function(){				
-					rs = o[m].old.apply(this,arguments);
-					for(i=0,list=o[m].list,len=list.length; i<len; i++){
-						list[i] && list[i](rs);
-					}
-					return rs;
-				};
-				o[m].list = [];
-				o[m].old = old;
-			})(m);
+			var i,_cache,len,old,rs;
+			old = o[m];
+			o[m] = function(){				
+				rs = o[m].old.apply(o,arguments);
+				for(i=0,_cache=o[m]._cache,len=_cache.length; i<len; i++){
+					_cache[i] && _cache[i](rs);
+				}
+				return rs;
+			};
+			o[m]._cache = [];
+			o[m].old = old; //原方法迁移到这里
 		}
 	}
-	
+
 	//添加自定义函数，命名空间是Events
 	E = o[handle] = o[handle] || {};
 	//绑定函数 
@@ -37,13 +56,14 @@ function Events(o,handle){
 		metheds = metheds || [];
 		metheds = metheds.split(spliter);
 		while(methed = metheds.shift()){
-			if(!o[methed]) continue;
-			for(i=0, len=o[methed].list.length; i<len; i++){
-				if(o[methed].list[i].toString() === callback.toString()){
+			if(!o[methed] || !o[methed].prototype) {continue;}
+			if(!o[methed]._cache) {init(methed);}
+			for(i=0, len=o[methed]._cache.length; i<len; i++){
+				if(o[methed]._cache[i].toString() === callback.toString()){
 					break;
 				}
 			}
-			len==i && o[methed].list.push(callback);
+			len==i && o[methed]._cache.push(callback);
 		}
 	}
 	
@@ -53,26 +73,26 @@ function Events(o,handle){
 	//	解除某个事件的所有函数 off('alert');
 	//	解除所有事件的所有函数 off();
 	E['off']=E['unbind']= function(metheds, callback){
-		var m,i,len,list,methed;
+		var m,i,len,_cache,methed;
 		metheds = metheds || [];
 		metheds = metheds.split(spliter);
 		while(methed = metheds.shift()){
 			if(!callback && !methed){
 				for(m in o){
-					if(o[m].prototype && o[m].list){
-						o[m].list = [];
+					if(o[m].prototype && o[m]._cache){
+						o[m]._cache = [];
 					} 
 				}
 			}else if(!callback){
 				o[methed] 
 					&& o[methed].prototype 
-					&& o[methed].list 
-					&& (o[methed].list = []);
+					&& o[methed]._cache 
+					&& (o[methed]._cache = []);
 			}else{
-				if(o[methed].prototype && o[methed].list){
-					for(i=0, len=o[methed].list.length; i<len; i++){
-						if(o[methed].list[i].toString() === callback.toString()){
-							o[methed].list.splice(i,1);
+				if(o[methed].prototype && o[methed]._cache){
+					for(i=0, len=o[methed]._cache.length; i<len; i++){
+						if(o[methed]._cache[i].toString() === callback.toString()){
+							o[methed]._cache.splice(i,1);
 							break;
 						}
 					}
@@ -85,29 +105,29 @@ function Events(o,handle){
 	//exp:
 	//	fire('alert')
 	E['fire']=E['trigger']= function(metheds,param){
-		var list,event,methed;
+		var _cache,event,methed;
 		metheds = metheds || [];
 		metheds = metheds.split(spliter);
 		while(methed = metheds.shift()){
 			o[methed] 
 				&& o[methed].prototype 
-				&& o[methed].list 
-				&& (list = o[methed].list);
-			for(i=0,len=list.length; i<len; i++){
-				list[i] && list[i](param);
+				&& o[methed]._cache 
+				&& (_cache = o[methed]._cache);
+			for(i=0,len=_cache.length; i<len; i++){
+				_cache[i] && _cache[i](param);
 			}
 		}
-	}
+	};
 
 	//卸载Events
 	E['destroy']= function(){
 		delete o[handle];
 		for(m in o){
-			if(o[m].prototype && o[m].list && o[m].old){
+			if(o[m].prototype && o[m]._cache && o[m].old){
 				o[m] = o[m].old;
-				delete o[m].list;
+				delete o[m]._cache;
 				delete o[m].old;
 			}
 		}
-	}	
+	};	
 }

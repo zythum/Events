@@ -77,48 +77,37 @@ var App = function(){
 	var show = function(){
 		var n = data.num();
 		num.innerHTML = '<i>'+n[0]+' </i>done / <i>'+n[1]+' </i>item';
-	};
-
-	data.Events.on('add remove',function(rs){
-		list.appendChild(rs.view.getDOM());
-		if(data.isAllDone()){
-			alldone.checked = true;
-		}else{
-			alldone.checked = false;
-		}
-		show();
+	};	
+	data.Events.on('add',function(rs){
+		list.appendChild(rs.view.getDOM());		
+	});
+	data.Events.on('remove',function(rs){
+		list.removeChild(rs.view.getDOM());
 	});
 	data.Events.on('done',function(rs){
 		rs.view.viewDone();
-		if(data.isAllDone()){
-			alldone.checked = true;
-		}else{
-			alldone.checked = false;
-		}
-		show();
 	});
 	data.Events.on('undone',function(rs){
 		rs.view.viewUndone();
-		if(data.isAllDone()){
-			alldone.checked = true;
-		}else{
-			alldone.checked = false;
-		}
-		show();
 	});
 	data.Events.on('allDone',function(rs){
 		for(var i in rs){
 			rs[i].view.viewDone();
 		}
-		show();
 	});
 	data.Events.on('allUndone',function(rs){
 		for(var i in rs){
 			rs[i].view.viewUndone();
 		}
+	});
+	data.Events.on('add remove done undone allDone allUndone',function(rs){
+		if(data.isAllDone()){
+			alldone.checked = true;
+		}else{
+			alldone.checked = false;
+		}
 		show();
 	});
-
 	//Event
 	input.addEventListener('keypress',function(e){
 		if(e.keyCode===13){
